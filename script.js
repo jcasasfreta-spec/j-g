@@ -1,251 +1,97 @@
-/* ═══════════════════════════════════════════════════
-   SAVE THE DATE · Judit & Guillermo · 17.07.2027
-   script.js — mapa, avión, pétalos, popup
-═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   Judit & Guillermo · Save the Date · 17.07.2027
+   script.js
+═══════════════════════════════════════════════ */
 
-/* ──────────────────────────────────────────────────
-   MAPA — generado con Canvas 2D (Natural Earth data)
-   Centrado en el Océano Atlántico
-   Paleta crema / azul pálido / dorado
-────────────────────────────────────────────────── */
-
-const MAP = {
-  /* Offset de longitud para centrar el Atlántico:
-     -30° coloca el centro del mapa sobre el Atlántico */
-  lonOffset: -30,
-
-  /* Países simplificados como polígonos [lon, lat] */
-  /* Contornos aproximados pero visualmente reconocibles */
-  landColor:    '#e8d5b7',
-  seaColor:     '#c8dde8',
-  strokeColor:  '#c4a97a',
-  strokeWidth:  0.5,
-};
-
-/* ─── Coordenadas geográficas de las ciudades ─── */
-const BUENOS_AIRES = { lon: -58.38, lat: -34.60 };
-const BARCELONA    = { lon:   2.15, lat:  41.38 };
-
-/* ─── Posición en pantalla como % ─── */
-let buePct, bcnPct;
-
-/* ──────────────────────────────────────────────────
-   PROYECCIÓN EQUIRECTANGULAR con offset de longitud
-────────────────────────────────────────────────── */
-function project(lon, lat, w, h) {
-  const normLon = ((lon - MAP.lonOffset + 180 + 360) % 360) - 180;
-  const x = (normLon + 180) / 360 * w;
-  const y = (90 - lat) / 180 * h;
-  return { x, y };
+/* ──────────────────────────────────────────────
+   COORDENADAS GEOGRÁFICAS → POSICIÓN EN EL SVG
+   El world.svg tiene viewBox="0 0 2000 857"
+   y usa proyección equirectangular estándar:
+     x = (lon + 180) / 360 * 2000
+     y = (90 - lat) / 180 * 857
+────────────────────────────────────────────── */
+function geoToSVG(lon, lat) {
+  return {
+    x: (lon + 180) / 360 * 2000,
+    y: (90 - lat)  / 180 * 857,
+  };
 }
 
-function geoToPct(lon, lat) {
-  const normLon = ((lon - MAP.lonOffset + 180 + 360) % 360) - 180;
-  const pctX = (normLon + 180) / 360 * 100;
-  const pctY = (90 - lat) / 180 * 100;
-  return { x: pctX, y: pctY };
-}
+/* Coordenadas de las ciudades */
+const BUE = geoToSVG(-58.38, -34.60);  // Buenos Aires
+const BCN = geoToSVG(  2.15,  41.38);  // Barcelona
 
-/* ──────────────────────────────────────────────────
-   DIBUJAR MAPA EN CANVAS
-────────────────────────────────────────────────── */
-function buildMap() {
-  const container = document.getElementById('map-bg');
-  const canvas = document.createElement('canvas');
-  const W = window.innerWidth  * window.devicePixelRatio;
-  const H = window.innerHeight * window.devicePixelRatio;
-  canvas.width  = W;
-  canvas.height = H;
-  canvas.style.width  = '100%';
-  canvas.style.height = '100%';
-  canvas.style.display = 'block';
-  container.appendChild(canvas);
-
-  const ctx = canvas.getContext('2d');
+/* ──────────────────────────────────────────────
+   CARGAR world.svg Y AJUSTAR COLORES
+────────────────────────────────────────────── */
+async function loadMap() {
+  const res  = await fetch('images/world.svg');
+  const text = await res.text();
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(text, 'image/svg+xml');
+  const svg    = doc.querySelector('svg');
 
   /* Fondo oceánico */
-  ctx.fillStyle = MAP.seaColor;
-  ctx.fillRect(0, 0, W, H);
+  svg.style.background = 'transparent';
 
-  /* Graticule (líneas de latitud/longitud) */
-  ctx.strokeStyle = 'rgba(180,160,120,0.18)';
-  ctx.lineWidth = 0.8;
-  for (let lon = -180; lon <= 180; lon += 30) {
-    const p1 = project(lon, 90, W, H);
-    const p2 = project(lon, -90, W, H);
-    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-  }
-  for (let lat = -60; lat <= 90; lat += 30) {
-    const p1 = project(-180, lat, W, H);
-    const p2 = project(180, lat, W, H);
-    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
-  }
+  /* Colores de los países */
+  svg.querySelectorAll('path').forEach(p => {
+    p.setAttribute('fill',   '#d4c4a0');
+    p.setAttribute('stroke', '#b89a6a');
+    p.setAttribute('stroke-width', '0.6');
+  });
 
-  /* ── Continentes ── */
-  ctx.fillStyle = MAP.landColor;
-  ctx.strokeStyle = MAP.strokeColor;
-  ctx.lineWidth = MAP.strokeWidth;
+  /* Añadir rectángulo de fondo oceánico dentro del SVG */
+  const ocean = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  ocean.setAttribute('x', '0');
+  ocean.setAttribute('y', '0');
+  ocean.setAttribute('width', '2000');
+  ocean.setAttribute('height', '857');
+  ocean.setAttribute('fill', '#a8c4d4');
+  svg.insertBefore(ocean, svg.firstChild);
 
-  drawLand(ctx, W, H);
+  document.getElementById('map-bg').appendChild(svg);
 }
 
-function drawPolygon(ctx, coords, W, H) {
-  if (coords.length < 2) return;
-  ctx.beginPath();
-  const p0 = project(coords[0][0], coords[0][1], W, H);
-  ctx.moveTo(p0.x, p0.y);
-  for (let i = 1; i < coords.length; i++) {
-    const p = project(coords[i][0], coords[i][1], W, H);
-    ctx.lineTo(p.x, p.y);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
+/* ──────────────────────────────────────────────
+   POSICIONAR ELEMENTOS DOM sobre el mapa
+   Necesitamos convertir coordenadas SVG (0-2000 × 0-857)
+   a % de pantalla, teniendo en cuenta el CSS que escala
+   y centra el SVG con width:200% y transform:translate(-50%,-50%)
+────────────────────────────────────────────── */
+function svgToScreen(svgX, svgY) {
+  /* El SVG se renderiza al 200% del ancho de pantalla (width:200%),
+     centrado horizontalmente y verticalmente.
+     Ancho SVG real en px = window.innerWidth * 2
+     Alto SVG real en px  = (857/2000) * window.innerWidth * 2 */
+  const renderedW = window.innerWidth  * 2;
+  const renderedH = (857 / 2000) * renderedW;
+
+  /* Offset para centrar en pantalla */
+  const offsetX = (window.innerWidth  - renderedW) / 2;
+  const offsetY = (window.innerHeight - renderedH) / 2;
+
+  const screenX = offsetX + (svgX / 2000) * renderedW;
+  const screenY = offsetY + (svgY / 857)  * renderedH;
+
+  return {
+    pctX: (screenX / window.innerWidth)  * 100,
+    pctY: (screenY / window.innerHeight) * 100,
+  };
 }
 
-function drawLand(ctx, W, H) {
-  const shapes = getLandShapes();
-  for (const shape of shapes) {
-    drawPolygon(ctx, shape, W, H);
-  }
-}
-
-/* ──────────────────────────────────────────────────
-   FORMAS DE CONTINENTES (polígonos simplificados)
-   Suficientemente detallados para ser reconocibles
-────────────────────────────────────────────────── */
-function getLandShapes() {
-  return [
-
-  /* ── EUROPA ── */
-  [[-10,36],[0,36],[5,43],[10,44],[15,44],[18,40],[20,37],[26,38],[28,41],[26,44],
-   [22,47],[18,50],[14,54],[10,55],[5,57],[0,51],[-5,48],[-9,39],[-10,36]],
-
-  /* Escandinavia */
-  [[5,57],[8,58],[5,62],[5,70],[15,71],[20,70],[25,65],[28,60],[25,56],[20,55],
-   [14,54],[10,55],[5,57]],
-
-  /* Islandia */
-  [[-25,64],[-13,63],[-13,66],[-20,66],[-25,64]],
-
-  /* Gran Bretaña */
-  [[-5,50],[2,51],[2,53],[-4,58],[-5,57],[-2,51],[-5,50]],
-
-  /* Irlanda */
-  [[-10,51],[-6,51],[-6,55],[-10,54],[-10,51]],
-
-  /* ── ÁFRICA ── */
-  [[-18,15],[-16,12],[-15,10],[-8,5],[-5,5],[0,5],[10,5],[15,2],[20,-5],[25,-10],
-   [32,-20],[35,-30],[30,-35],[20,-36],[15,-34],[10,-20],[5,-5],[-5,5],[-8,5],
-   [-15,10],[-16,12],[-18,15],[-17,20],[-15,25],[-10,30],[-5,36],[0,37],[5,37],
-   [10,38],[15,38],[20,37],[25,33],[30,32],[32,28],[30,22],[25,20],[20,18],[15,16],
-   [10,12],[5,10],[0,10],[-5,10],[-10,12],[-15,12],[-18,15]],
-
-  /* Madagascar */
-  [[44,-12],[50,-12],[50,-26],[44,-25],[44,-12]],
-
-  /* ── ASIA ── */
-  [[26,38],[30,38],[35,36],[37,37],[40,36],[42,37],[44,42],[48,42],[50,45],[55,45],
-   [60,44],[65,40],[68,36],[65,30],[60,24],[55,22],[50,25],[45,23],[40,20],[38,22],
-   [36,24],[34,28],[30,30],[26,32],[26,38]],
-
-  /* Asia central-norte */
-  [[40,36],[45,40],[50,45],[60,44],[70,42],[80,42],[90,50],[100,52],[110,50],
-   [120,48],[130,45],[140,40],[140,35],[130,30],[120,22],[110,18],[100,12],[95,5],
-   [100,-5],[105,-8],[110,-8],[115,-5],[120,5],[125,10],[130,15],[130,20],[135,25],
-   [140,35],[145,38],[150,40],[145,45],[140,40],[130,45],[120,48],[110,50],[100,52],
-   [90,55],[80,58],[70,55],[60,56],[55,60],[50,65],[55,70],[60,72],[70,72],[80,70],
-   [90,70],[100,70],[110,70],[120,68],[130,65],[140,62],[150,60],[160,60],[170,60],
-   [175,62],[170,65],[160,68],[150,70],[140,72],[130,72],[120,72],[110,70],[100,70],
-   [90,75],[80,72],[70,72],[60,68],[50,65],[45,60],[40,55],[35,50],[30,46],[26,44],
-   [22,47],[26,44],[30,46],[35,50],[40,55],[40,36]],
-
-  /* Japón */
-  [[130,31],[135,33],[140,38],[145,40],[145,44],[141,43],[135,35],[130,31]],
-
-  /* Sri Lanka */
-  [[80,6],[82,6],[82,8],[80,8],[80,6]],
-
-  /* ── ASIA SURESTE ── */
-  [[95,5],[100,-5],[105,-8],[108,-5],[105,0],[100,5],[98,8],[95,5]],
-
-  /* Indonesia (simplificado) */
-  [[95,-5],[105,-5],[110,-8],[115,-8],[120,-10],[120,-8],[115,-5],[110,-5],[105,-5],[95,-5]],
-
-  /* ── AUSTRALASIA ── */
-  [[114,-22],[120,-20],[124,-18],[128,-14],[132,-12],[136,-12],[140,-15],[144,-20],
-   [148,-22],[152,-25],[153,-28],[151,-33],[148,-38],[145,-38],[140,-36],[135,-35],
-   [130,-32],[125,-34],[120,-33],[115,-32],[114,-28],[114,-22]],
-
-  /* Nueva Zelanda */
-  [[166,-46],[170,-44],[172,-42],[170,-40],[168,-40],[166,-42],[166,-46]],
-
-  /* ── NORTEAMÉRICA ── */
-  [[-170,60],[-160,60],[-150,58],[-140,55],[-130,50],[-125,46],[-120,38],[-118,34],
-   [-117,30],[-110,24],[-105,20],[-100,18],[-90,15],[-85,10],[-80,9],[-75,10],
-   [-70,12],[-65,18],[-62,16],[-65,20],[-70,22],[-75,24],[-78,26],[-80,25],
-   [-82,29],[-85,30],[-88,30],[-90,29],[-90,25],[-87,21],[-84,18],[- 80,22],
-   [-84,30],[-85,35],[-80,36],[-76,37],[-74,40],[-72,41],[-70,42],[-68,44],
-   [-65,44],[-64,46],[-66,47],[-70,47],[-75,45],[-76,44],[-80,43],[-83,42],
-   [-85,45],[-87,45],[-90,46],[-92,47],[-95,50],[-100,50],[-105,52],[-110,55],
-   [-115,58],[-120,58],[-125,60],[-130,58],[-135,60],[-140,60],[-145,62],
-   [-150,65],[-155,65],[-160,66],[-165,68],[-168,70],[-160,70],[-150,70],
-   [-140,68],[-135,65],[-130,62],[-125,62],[-120,65],[-115,65],[-110,68],
-   [-100,70],[-90,72],[-80,70],[-70,68],[-65,63],[-60,58],[-65,55],[-70,52],
-   [-75,50],[-80,50],[-85,50],[-90,50],[-95,50],[-100,50],[-105,52],[-110,55],
-   [-115,58],[-120,58],[-125,60],[-130,58],[-140,60],[-150,60],[-160,60],[-170,60]],
-
-  /* Alaska */
-  [[-170,54],[-165,54],[-160,58],[-155,60],[-150,60],[-145,62],[-140,60],
-   [-140,55],[-150,55],[-160,54],[-165,52],[-170,52],[-170,54]],
-
-  /* Groenlandia */
-  [[-48,60],[-42,60],[-30,65],[-20,70],[-18,76],[-30,80],[-45,82],[-55,80],
-   [-60,75],[-58,68],[-55,62],[-48,60]],
-
-  /* ── CENTROAMÉRICA ── */
-  [[-90,15],[-85,10],[-80,9],[-77,8],[-76,9],[-78,10],[-80,10],[-83,10],
-   [-84,12],[-87,14],[-90,15]],
-
-  /* Cuba */
-  [[-85,22],[-75,20],[-74,22],[-80,23],[-85,23],[-85,22]],
-
-  /* ── SUDAMÉRICA ── */
-  [[-82,8],[-80,9],[-77,8],[-72,12],[-68,11],[-62,10],[-60,6],[-52,5],[-50,0],
-   [-48,-5],[-45,-5],[-40,-3],[-35,0],[-35,-5],[-38,-10],[-39,-15],[-40,-20],
-   [-42,-22],[-44,-24],[-45,-24],[-48,-28],[-52,-33],[-55,-34],[-58,-38],[-62,-40],
-   [-65,-43],[-68,-46],[-70,-50],[-72,-52],[-70,-55],[-68,-54],[-65,-52],[-62,-50],
-   [-58,-52],[-55,-50],[-53,-46],[-55,-42],[-58,-38],[-62,-35],[-65,-30],[-68,-26],
-   [-70,-20],[-72,-15],[-76,-12],[-78,-8],[-80,-5],[-78,-2],[-75,0],[-72,2],
-   [-70,5],[-68,6],[-66,10],[-62,10],[-60,6],[-52,5],[-50,0],[-48,-5],[-45,-5],
-   [-40,-3],[-35,0],[-35,-5],[-38,-10],[-80,-5],[-82,8]],
-
-  /* Tierra del Fuego */
-  [[-72,-52],[-68,-52],[-66,-54],[-68,-56],[-72,-54],[-72,-52]],
-
-  /* Falkland */
-  [[-60,-52],[-57,-52],[-57,-54],[-60,-54],[-60,-52]],
-
-  /* ── ANTÁRTIDA (simplificada) ── */
-  [[-180,-70],[180,-70],[180,-90],[-180,-90],[-180,-70]],
-  ];
-}
-
-/* ──────────────────────────────────────────────────
-   POSICIONAR ELEMENTOS EN EL MAPA
-────────────────────────────────────────────────── */
 function positionElements() {
-  buePct = geoToPct(BUENOS_AIRES.lon, BUENOS_AIRES.lat);
-  bcnPct = geoToPct(BARCELONA.lon,    BARCELONA.lat);
+  const bue = svgToScreen(BUE.x, BUE.y);
+  const bcn = svgToScreen(BCN.x, BCN.y);
 
-  setPos('dot-bue',   buePct.x, buePct.y);
-  setPos('label-bue', buePct.x, buePct.y + 3.2);
+  setPos('dot-bue',   bue.pctX, bue.pctY);
+  setPos('label-bue', bue.pctX, bue.pctY + 2.5);
 
-  setPos('dot-bcn',   bcnPct.x, bcnPct.y);
-  setPos('bcn-ring1', bcnPct.x, bcnPct.y);
-  setPos('bcn-ring2', bcnPct.x, bcnPct.y);
-  setPos('label-bcn', bcnPct.x, bcnPct.y + 2.8);
-  setPos('tap-hint',  bcnPct.x, bcnPct.y + 5.8);
+  setPos('dot-bcn',  bcn.pctX, bcn.pctY);
+  setPos('ring1',    bcn.pctX, bcn.pctY);
+  setPos('ring2',    bcn.pctX, bcn.pctY);
+  setPos('label-bcn', bcn.pctX, bcn.pctY - 3.2);  /* etiqueta arriba del punto */
+  setPos('tap-hint',  bcn.pctX, bcn.pctY + 3.0);
 }
 
 function setPos(id, pctX, pctY) {
@@ -255,155 +101,247 @@ function setPos(id, pctX, pctY) {
   el.style.top  = pctY + '%';
 }
 
-/* ──────────────────────────────────────────────────
-   RUTA PUNTEADA EN EL SVG OVERLAY
-────────────────────────────────────────────────── */
-function updateFlightPath() {
-  const svgEl = document.getElementById('route-svg');
-  const VW = 1000, VH = 600;
+/* ──────────────────────────────────────────────
+   RUTA PUNTEADA (coordenadas SVG nativas 0-2000×857)
+────────────────────────────────────────────── */
+function drawFlightPath() {
+  const pathEl = document.getElementById('flight-path');
 
-  const bx = (buePct.x / 100) * VW;
-  const by = (buePct.y / 100) * VH;
-  const ex = (bcnPct.x / 100) * VW;
-  const ey = (bcnPct.y / 100) * VH;
+  /* Arco hacia el norte sobre el Atlántico */
+  const midX  = (BUE.x + BCN.x) / 2;
+  const midY  = Math.min(BUE.y, BCN.y) - 200;  /* punto de control hacia arriba */
+  const cp1x  = BUE.x + (BCN.x - BUE.x) * 0.2;
+  const cp1y  = midY + 40;
+  const cp2x  = BUE.x + (BCN.x - BUE.x) * 0.8;
+  const cp2y  = midY + 40;
 
-  /* Curva de Bézier cúbica: arco hacia el norte */
-  const cp1x = bx + (ex - bx) * 0.25;
-  const cp1y = Math.min(by, ey) - 95;
-  const cp2x = bx + (ex - bx) * 0.75;
-  const cp2y = Math.min(by, ey) - 95;
-
-  const d = `M ${bx} ${by} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${ex} ${ey}`;
-  document.getElementById('flight-path').setAttribute('d', d);
+  pathEl.setAttribute('d',
+    `M ${BUE.x} ${BUE.y} C ${cp1x} ${cp1y} ${cp2x} ${cp2y} ${BCN.x} ${BCN.y}`
+  );
 }
 
-/* ──────────────────────────────────────────────────
-   ANIMACIÓN DEL AVIÓN
-────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────
+   ANIMACIÓN DEL AVIÓN a lo largo de la ruta
+────────────────────────────────────────────── */
 function animatePlane() {
-  const plane   = document.getElementById('plane');
-  const pathEl  = document.getElementById('flight-path');
-  const svgEl   = document.getElementById('route-svg');
-  const DURATION = 7000;   /* ms por trayecto */
-  const PAUSE    = 2200;   /* ms de pausa al llegar */
-  let startTime  = null;
-  let animating  = true;
+  const planeWrap = document.getElementById('plane-wrap');
+  const pathEl    = document.getElementById('flight-path');
+  const svgEl     = document.getElementById('route-svg');
+  const DURATION  = 8000;
+  const PAUSE     = 2500;
+  let   startTime = null;
 
-  function easeInOut(t) {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-  }
-
-  function getScreenPoint(t) {
-    const totalLen = pathEl.getTotalLength();
-    const pt = pathEl.getPointAtLength(easeInOut(t) * totalLen);
-    const rect = svgEl.getBoundingClientRect();
-    const scaleX = rect.width  / 1000;
-    const scaleY = rect.height / 600;
-    return {
-      screenX: rect.left + pt.x * scaleX,
-      screenY: rect.top  + pt.y * scaleY,
-      svgPt: pt,
-    };
+  function ease(t) {
+    return t < 0.5 ? 2*t*t : -1 + (4-2*t)*t;
   }
 
   function step(ts) {
     if (!startTime) startTime = ts;
-    let t = Math.min((ts - startTime) / DURATION, 1);
+    const t   = Math.min((ts - startTime) / DURATION, 1);
+    const et  = ease(t);
+    const len = pathEl.getTotalLength();
+    const pt  = pathEl.getPointAtLength(et * len);
+    const pt2 = pathEl.getPointAtLength(Math.min((et + 0.006) * len, len));
 
-    const cur  = getScreenPoint(t);
-    const next = getScreenPoint(Math.min(t + 0.008, 1));
-    const angle = Math.atan2(next.screenY - cur.screenY, next.screenX - cur.screenX) * 180 / Math.PI;
+    /* Convertir coordenadas SVG a pantalla */
+    const rect   = svgEl.getBoundingClientRect();
+    const scaleX = rect.width  / 2000;
+    const scaleY = rect.height / 857;
+    const sx = rect.left + pt.x * scaleX;
+    const sy = rect.top  + pt.y * scaleY;
+    const sx2 = rect.left + pt2.x * scaleX;
+    const sy2 = rect.top  + pt2.y * scaleY;
 
-    plane.style.left      = cur.screenX + 'px';
-    plane.style.top       = cur.screenY + 'px';
-    plane.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+    const angle = Math.atan2(sy2 - sy, sx2 - sx) * 180 / Math.PI;
+
+    planeWrap.style.left      = sx + 'px';
+    planeWrap.style.top       = sy + 'px';
+    planeWrap.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
 
     if (t < 1) {
       requestAnimationFrame(step);
     } else {
-      setTimeout(() => {
-        startTime = null;
-        requestAnimationFrame(step);
-      }, PAUSE);
+      setTimeout(() => { startTime = null; requestAnimationFrame(step); }, PAUSE);
     }
   }
 
   requestAnimationFrame(step);
 }
 
-/* ──────────────────────────────────────────────────
-   PÉTALOS
-────────────────────────────────────────────────── */
-const PETALS = ['🌸', '🌹', '✿', '❀', '🌺'];
+/* ──────────────────────────────────────────────
+   PÉTALOS SVG + PARTÍCULAS DE LUZ (canvas)
+────────────────────────────────────────────── */
+const canvas = document.getElementById('petal-canvas');
+const ctx    = canvas.getContext('2d');
 
-function spawnPetal() {
-  const container = document.getElementById('petals-container');
-  const p = document.createElement('div');
-  p.className = 'petal';
-  p.textContent = PETALS[Math.floor(Math.random() * PETALS.length)];
+/* Formas de pétalos SVG como Path2D */
+const PETAL_SHAPES = [
+  /* Pétalo 1: elipse alargada */
+  (s) => { const p = new Path2D(); p.ellipse(0, 0, s*0.45, s, 0, 0, Math.PI*2); return p; },
+  /* Pétalo 2: lágrima */
+  (s) => {
+    const p = new Path2D();
+    p.moveTo(0, -s);
+    p.bezierCurveTo(s*0.7, -s*0.5, s*0.5, s*0.5, 0, s);
+    p.bezierCurveTo(-s*0.5, s*0.5, -s*0.7, -s*0.5, 0, -s);
+    return p;
+  },
+  /* Pétalo 3: rombo redondeado */
+  (s) => {
+    const p = new Path2D();
+    p.moveTo(0, -s);
+    p.quadraticCurveTo(s*0.6,  -s*0.2, 0,  s*0.9);
+    p.quadraticCurveTo(-s*0.6, -s*0.2, 0, -s);
+    return p;
+  },
+];
 
-  const startX  = Math.random() * window.innerWidth;
-  const drift   = (Math.random() - 0.5) * 200;
-  const rot     = Math.random() * 720 - 360;
-  const dur     = 8 + Math.random() * 7;
-  const size    = 10 + Math.random() * 10;
-  const opacity = 0.45 + Math.random() * 0.45;
+const PETAL_COLORS = [
+  'rgba(242, 210, 220, ALPHA)',  /* rosa pálido */
+  'rgba(255, 230, 240, ALPHA)',  /* rosa muy suave */
+  'rgba(220, 190, 210, ALPHA)',  /* lila rosado */
+  'rgba(245, 220, 200, ALPHA)',  /* crema cálido */
+];
 
-  p.style.left               = startX + 'px';
-  p.style.fontSize           = size + 'px';
-  p.style.opacity            = opacity;
-  p.style.animationDuration  = dur + 's';
-  p.style.setProperty('--drift', drift + 'px');
-  p.style.setProperty('--rot',   rot + 'deg');
+const PARTICLE_COLORS = [
+  'rgba(220, 180, 80, ALPHA)',   /* dorado */
+  'rgba(255, 220, 120, ALPHA)',  /* dorado claro */
+  'rgba(200, 160, 60, ALPHA)',   /* dorado oscuro */
+  'rgba(255, 245, 200, ALPHA)',  /* luz cálida */
+];
 
-  container.appendChild(p);
-  setTimeout(() => p.remove(), dur * 1000);
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 
-/* ──────────────────────────────────────────────────
+class Petal {
+  constructor() { this.reset(true); }
+  reset(initial = false) {
+    this.x     = Math.random() * canvas.width;
+    this.y     = initial ? Math.random() * canvas.height * -1 : -40;
+    this.size  = 6 + Math.random() * 10;
+    this.speedY = 0.6 + Math.random() * 0.9;
+    this.speedX = (Math.random() - 0.5) * 0.8;
+    this.rot   = Math.random() * Math.PI * 2;
+    this.rotV  = (Math.random() - 0.5) * 0.025;
+    this.alpha = 0.55 + Math.random() * 0.4;
+    this.swing = Math.random() * Math.PI * 2;
+    this.swingV = 0.018 + Math.random() * 0.012;
+    this.shapeIdx = Math.floor(Math.random() * PETAL_SHAPES.length);
+    this.colorTpl = PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)];
+    this.isPetal = true;
+  }
+  update() {
+    this.swing += this.swingV;
+    this.x    += this.speedX + Math.sin(this.swing) * 0.7;
+    this.y    += this.speedY;
+    this.rot  += this.rotV;
+    if (this.y > canvas.height + 50) this.reset();
+  }
+  draw(ctx) {
+    const color = this.colorTpl.replace('ALPHA', this.alpha.toFixed(2));
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rot);
+    ctx.fillStyle = color;
+    ctx.fill(PETAL_SHAPES[this.shapeIdx](this.size));
+    ctx.restore();
+  }
+}
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(initial = false) {
+    this.x     = Math.random() * canvas.width;
+    this.y     = initial ? Math.random() * canvas.height : canvas.height + 10;
+    this.size  = 1.5 + Math.random() * 3;
+    this.speedY = -(0.4 + Math.random() * 0.8);  /* sube */
+    this.speedX = (Math.random() - 0.5) * 0.5;
+    this.alpha = 0.4 + Math.random() * 0.55;
+    this.alphaV = (Math.random() - 0.5) * 0.008;
+    this.colorTpl = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)];
+    this.shimmer = Math.random() * Math.PI * 2;
+    this.shimmerV = 0.03 + Math.random() * 0.04;
+    this.isPetal = false;
+  }
+  update() {
+    this.x      += this.speedX;
+    this.y      += this.speedY;
+    this.alpha  += this.alphaV;
+    this.shimmer += this.shimmerV;
+    if (this.alpha > 0.95 || this.alpha < 0.1) this.alphaV *= -1;
+    if (this.y < -20) this.reset();
+  }
+  draw(ctx) {
+    const glow  = 0.5 + 0.5 * Math.sin(this.shimmer);
+    const alpha = Math.max(0.05, this.alpha * glow);
+    const color = this.colorTpl.replace('ALPHA', alpha.toFixed(2));
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    /* halo suave */
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = this.colorTpl.replace('ALPHA', (alpha * 0.18).toFixed(2));
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function initParticles() {
+  particles = [];
+  for (let i = 0; i < 28; i++) particles.push(new Petal());
+  for (let i = 0; i < 22; i++) particles.push(new Particle());
+}
+
+function animateParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (const p of particles) { p.update(); p.draw(ctx); }
+  requestAnimationFrame(animateParticles);
+}
+
+/* ──────────────────────────────────────────────
    POPUP
-────────────────────────────────────────────────── */
+────────────────────────────────────────────── */
 function openPopup() {
   document.getElementById('popup-overlay').classList.add('active');
-  document.getElementById('popup').setAttribute('aria-hidden', 'false');
 }
-
 function closePopup() {
   document.getElementById('popup-overlay').classList.remove('active');
-  document.getElementById('popup').setAttribute('aria-hidden', 'true');
 }
-
-function closePopupOutside(e) {
+function closeOutside(e) {
   if (e.target === document.getElementById('popup-overlay')) closePopup();
 }
 
-/* ──────────────────────────────────────────────────
+/* Cerrar con Escape */
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
+
+/* ──────────────────────────────────────────────
    INIT
-────────────────────────────────────────────────── */
-function init() {
-  buildMap();
+────────────────────────────────────────────── */
+async function init() {
+  resizeCanvas();
+  await loadMap();
   positionElements();
-  updateFlightPath();
-
-  /* Avión arranca tras una pequeña pausa */
-  setTimeout(animatePlane, 1000);
-
-  /* Pétalos: ráfaga inicial + lluvia continua */
-  for (let i = 0; i < 8; i++) setTimeout(spawnPetal, i * 350);
-  setInterval(spawnPetal, 700);
+  drawFlightPath();
+  setTimeout(animatePlane, 900);
+  initParticles();
+  animateParticles();
 }
 
-/* Espera a que las fuentes estén cargadas */
+window.addEventListener('resize', () => {
+  resizeCanvas();
+  positionElements();
+  drawFlightPath();
+});
+
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(init);
 } else {
   window.addEventListener('load', init);
 }
-
-/* Recalcular al redimensionar */
-window.addEventListener('resize', () => {
-  document.getElementById('map-bg').innerHTML = '';
-  buildMap();
-  positionElements();
-  updateFlightPath();
-});
