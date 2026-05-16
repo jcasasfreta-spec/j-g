@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Judit & Guillermo · Save the Date</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════
+       MAPA DE FONDO
+  ═══════════════════════════════════════ -->
+  <div id="map-container">
+    <div id="map-bg"></div>
+    <div class="map-overlay"></div>
+
+    <!-- SVG overlay: ruta punteada + avión -->
+    <svg class="svg-overlay" id="route-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <path id="flight-path" d="" fill="none" stroke="#b8860b"
+        stroke-width="1.5" stroke-dasharray="6 5" opacity="0.75"
+        filter="url(#soft-glow)"/>
+    </svg>
+
+    <!-- Textos principales -->
+    <div class="text-overlay">
+      <p class="save-the-date-text">Save the Date</p>
+      <h1 class="names">Judit <span class="amp">&</span> Guillermo</h1>
+      <p class="date-text">17 · 07 · 2027</p>
+    </div>
+
+    <!-- Punto Buenos Aires -->
+    <div class="city-dot" id="dot-bue"></div>
+    <div class="city-label" id="label-bue">Buenos Aires</div>
+
+    <!-- Punto Barcelona (pulsante + clickable) -->
+    <div class="bcn-ring" id="bcn-ring1"></div>
+    <div class="bcn-ring bcn-ring2" id="bcn-ring2"></div>
+    <div class="bcn-dot" id="dot-bcn" onclick="openPopup()" role="button" aria-label="Abrir invitación"></div>
+    <div class="city-label" id="label-bcn">Barcelona</div>
+    <div class="tap-hint" id="tap-hint">✦ Toca aquí ✦</div>
+
+    <!-- Avión -->
+    <div id="plane" aria-hidden="true">✈</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       POPUP
+  ═══════════════════════════════════════ -->
+  <div class="popup-overlay" id="popup-overlay" onclick="closePopupOutside(event)">
+    <div class="popup" id="popup" role="dialog" aria-modal="true" aria-label="Invitación de boda">
+      <button class="popup-close" onclick="closePopup()" aria-label="Cerrar">×</button>
+
+      <div class="rose-deco left">❧</div>
+      <div class="rose-deco right">❧</div>
+
+      <!-- Imagen personalizada: cambia la ruta por images/image1.png -->
+      <div class="popup-image-wrap">
+        <img src="images/image1.png" alt="Judit y Guillermo" class="popup-image"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <div class="popup-image-placeholder">
+          <span>Judit &amp; Guillermo</span>
+        </div>
+      </div>
+
+      <p class="popup-eyebrow">nos complace invitarte a nuestra boda</p>
+      <h2 class="popup-title">Judit <span class="amp">& </span>Guillermo</h2>
+      <p class="popup-date">17 de julio de 2027</p>
+      <div class="popup-divider"></div>
+
+      <div class="popup-buttons">
+        <a href="https://forms.gle/mNn5QGhmMoPXfbsSA" target="_blank" rel="noopener" class="btn-primary">
+          Confirmar asistencia
+        </a>
+        <button class="btn-secondary" onclick="closePopup()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pétalos container -->
+  <div id="petals-container" aria-hidden="true"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
