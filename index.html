@@ -1,345 +1,424 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Judit & Guillermo — Save the Date</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-
   <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    body{
-      overflow:hidden;
-      font-family:'Inter', sans-serif;
-      background:#08111f;
-      color:white;
-      height:100vh;
-      width:100vw;
-      position:relative;
+    body {
+      width: 100%;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: #08111f;
+      font-family: Arial, sans-serif;
+      color: white;
     }
 
-    .background{
-      position:absolute;
-      inset:0;
+    .background {
+      position: fixed;
+      inset: 0;
       background:
-        radial-gradient(circle at top, rgba(212,175,55,0.12), transparent 35%),
-        radial-gradient(circle at bottom, rgba(230,183,169,0.12), transparent 40%),
-        linear-gradient(180deg,#07101d 0%, #0d1830 45%, #08111f 100%);
-      animation: gradientMove 12s ease-in-out infinite alternate;
+        radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 40%),
+        linear-gradient(180deg, #08111f 0%, #0b1730 100%);
+      z-index: 0;
     }
 
-    @keyframes gradientMove{
-      from{
-        transform:scale(1);
+    /* STARS */
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: blink 3s infinite ease-in-out;
+      opacity: 0.4;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 0.2;
       }
-      to{
-        transform:scale(1.05);
-      }
-    }
 
-    .stars{
-      position:absolute;
-      inset:0;
-      overflow:hidden;
-    }
-
-    .star{
-      position:absolute;
-      width:2px;
-      height:2px;
-      background:white;
-      border-radius:50%;
-      opacity:.3;
-      animation: twinkle 3s infinite ease-in-out;
-    }
-
-    @keyframes twinkle{
-      0%,100%{
-        opacity:.2;
-        transform:scale(1);
-      }
-      50%{
-        opacity:1;
-        transform:scale(1.8);
+      50% {
+        opacity: 1;
       }
     }
 
-    .container{
-      position:relative;
-      z-index:2;
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
+    /* MAIN */
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 100vh;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      padding: 30px 20px;
     }
 
-    .map-wrapper{
-      position:relative;
-      width:min(1200px, 95vw);
-      aspect-ratio:16/9;
+    .title {
+      text-align: center;
+      margin-bottom: 40px;
     }
 
-    .title{
-      position:absolute;
-      top:8%;
-      left:50%;
-      transform:translateX(-50%);
-      text-align:center;
-      z-index:10;
+    .title h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: normal;
+      margin-bottom: 10px;
     }
 
-    .title h1{
-      font-family:'Cormorant Garamond', serif;
-      font-size:clamp(2.8rem, 5vw, 5rem);
-      font-weight:600;
-      letter-spacing:2px;
-      color:#f8f4ee;
+    .title p {
+      letter-spacing: 4px;
+      font-size: 0.8rem;
+      opacity: 0.8;
+      text-transform: uppercase;
     }
 
-    .title p{
-      margin-top:8px;
-      color:rgba(255,255,255,.75);
-      letter-spacing:4px;
-      text-transform:uppercase;
-      font-size:.8rem;
+    /* MAP */
+
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
     }
 
-    svg{
-      width:100%;
-      height:100%;
-      opacity:.92;
+    .map-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0.9;
     }
 
-    .route{
-      stroke:#d4af37;
-      stroke-width:2.5;
-      fill:none;
-      stroke-dasharray:8 10;
-      opacity:.8;
+    /* ROUTE */
+
+    .route-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
     }
 
-    .city{
-      fill:#d4af37;
-      filter:drop-shadow(0 0 10px rgba(212,175,55,.8));
+    .route-path {
+      fill: none;
+      stroke: #d4af37;
+      stroke-width: 3;
+      stroke-dasharray: 10 10;
     }
 
-    .city-label{
-      fill:white;
-      font-size:14px;
-      letter-spacing:1px;
-      opacity:.8;
+    /* CITIES */
+
+    .city {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #d4af37;
+      border-radius: 50%;
     }
 
-    .plane{
-      offset-path:path("M 330 420 Q 620 240 900 270");
-      offset-rotate:auto;
-      animation: fly 9s ease-in-out infinite;
+    .city-label {
+      position: absolute;
+      font-size: 14px;
+      white-space: nowrap;
+      opacity: 0.8;
     }
 
-    @keyframes fly{
-      0%{
-        offset-distance:0%;
+    /* Buenos Aires */
+
+    .ba {
+      left: 23%;
+      top: 67%;
+    }
+
+    .ba-label {
+      left: 20%;
+      top: 71%;
+    }
+
+    /* Barcelona */
+
+    .bcn {
+      left: 74%;
+      top: 34%;
+    }
+
+    .bcn-label {
+      left: 76%;
+      top: 33%;
+    }
+
+    /* PLANE */
+
+    .plane {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+
+      left: 23%;
+      top: 67%;
+
+      animation: flyPlane 10s linear infinite;
+
+      transform-origin: center;
+    }
+
+    @keyframes flyPlane {
+      0% {
+        left: 23%;
+        top: 67%;
+        transform: rotate(-18deg);
       }
-      100%{
-        offset-distance:100%;
+
+      50% {
+        transform: rotate(-8deg);
       }
-    }
 
-    .pulse-marker{
-      position:absolute;
-      top:39%;
-      right:19%;
-      transform:translate(-50%,-50%);
-      width:22px;
-      height:22px;
-      border-radius:50%;
-      background:#d4af37;
-      cursor:pointer;
-      box-shadow:0 0 25px rgba(212,175,55,.8);
-      z-index:20;
-    }
-
-    .pulse-marker::before,
-    .pulse-marker::after{
-      content:'';
-      position:absolute;
-      inset:0;
-      border-radius:50%;
-      border:2px solid rgba(212,175,55,.7);
-      animation:pulse 2.5s infinite;
-    }
-
-    .pulse-marker::after{
-      animation-delay:1s;
-    }
-
-    @keyframes pulse{
-      0%{
-        transform:scale(1);
-        opacity:1;
-      }
-      100%{
-        transform:scale(3);
-        opacity:0;
-      }
-    }
-
-    .popup{
-      position:fixed;
-      inset:0;
-      background:rgba(3,7,18,.7);
-      backdrop-filter:blur(12px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:100;
-      padding:20px;
-    }
-
-    .popup.active{
-      display:flex;
-      animation:fadeIn .4s ease;
-    }
-
-    @keyframes fadeIn{
-      from{
-        opacity:0;
-      }
-      to{
-        opacity:1;
+      100% {
+        left: 74%;
+        top: 34%;
+        transform: rotate(-18deg);
       }
     }
 
-    .popup-card{
-      width:min(420px, 100%);
-      background:rgba(10,17,30,.92);
-      border:1px solid rgba(212,175,55,.25);
-      border-radius:28px;
-      overflow:hidden;
-      box-shadow:
-        0 0 40px rgba(0,0,0,.45),
-        0 0 80px rgba(212,175,55,.08);
-      animation:popupEnter .5s ease;
+    /* PULSE BUTTON */
+
+    .pulse-button {
+      position: absolute;
+
+      left: 74%;
+      top: 34%;
+
+      width: 26px;
+      height: 26px;
+
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+
+      background: #d4af37;
+
+      cursor: pointer;
     }
 
-    @keyframes popupEnter{
-      from{
-        transform:translateY(20px) scale(.95);
-        opacity:0;
-      }
-      to{
-        transform:translateY(0) scale(1);
-        opacity:1;
-      }
+    .pulse-button::before,
+    .pulse-button::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(212, 175, 55, 0.7);
+      animation: pulse 2s infinite;
     }
 
-    .popup-image{
-      width:100%;
-      height:260px;
-      object-fit:cover;
+    .pulse-button::after {
+      animation-delay: 1s;
     }
 
-    .popup-content{
-      padding:34px 28px;
-      text-align:center;
-    }
-
-    .popup-content h2{
-      font-family:'Cormorant Garamond', serif;
-      font-size:2.4rem;
-      font-weight:600;
-      margin-bottom:12px;
-      color:#f8f4ee;
-    }
-
-    .popup-content p{
-      color:rgba(255,255,255,.8);
-      margin-bottom:28px;
-      line-height:1.6;
-    }
-
-    .buttons{
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-
-    .btn{
-      text-decoration:none;
-      padding:15px 20px;
-      border-radius:999px;
-      transition:.3s ease;
-      font-weight:500;
-      letter-spacing:.5px;
-    }
-
-    .btn-primary{
-      background:#d4af37;
-      color:#08111f;
-    }
-
-    .btn-primary:hover{
-      transform:translateY(-2px);
-      box-shadow:0 10px 25px rgba(212,175,55,.25);
-    }
-
-    .btn-secondary{
-      border:1px solid rgba(255,255,255,.18);
-      color:white;
-      background:rgba(255,255,255,.04);
-    }
-
-    .btn-secondary:hover{
-      background:rgba(255,255,255,.08);
-    }
-
-    .close{
-      position:absolute;
-      top:18px;
-      right:22px;
-      color:white;
-      font-size:28px;
-      cursor:pointer;
-      opacity:.7;
-      transition:.2s;
-    }
-
-    .close:hover{
-      opacity:1;
-    }
-
-    @media (max-width:768px){
-
-      .pulse-marker{
-        top:43%;
-        right:14%;
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
       }
 
-      .title{
-        top:12%;
-      }
-
-      .title h1{
-        font-size:3rem;
-      }
-
-      .title p{
-        font-size:.7rem;
+      100% {
+        transform: scale(3);
+        opacity: 0;
       }
     }
 
+    /* POPUP */
+
+    .popup {
+      position: fixed;
+      inset: 0;
+
+      background: rgba(0, 0, 0, 0.7);
+
+      display: none;
+      justify-content: center;
+      align-items: center;
+
+      z-index: 999;
+
+      padding: 20px;
+    }
+
+    .popup.active {
+      display: flex;
+    }
+
+    .popup-content {
+      width: 100%;
+      max-width: 850px;
+
+      background: #101b31;
+
+      display: flex;
+      flex-direction: row;
+
+      overflow: hidden;
+    }
+
+    .popup-image-container {
+      width: 50%;
+      background: black;
+    }
+
+    .popup-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: black;
+    }
+
+    .popup-text {
+      width: 50%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      padding: 40px;
+    }
+
+    .popup-text h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      font-weight: normal;
+    }
+
+    .popup-text p {
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 15px;
+      text-decoration: none;
+      text-align: center;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: #d4af37;
+      color: #08111f;
+    }
+
+    .btn-secondary {
+      border: 1px solid white;
+      color: white;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+
+      font-size: 30px;
+      cursor: pointer;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 768px) {
+
+      .map-wrapper {
+        aspect-ratio: 1 / 1;
+      }
+
+      .ba {
+        left: 18%;
+        top: 70%;
+      }
+
+      .ba-label {
+        left: 10%;
+        top: 76%;
+        font-size: 12px;
+      }
+
+      .bcn {
+        left: 78%;
+        top: 32%;
+      }
+
+      .bcn-label {
+        left: 60%;
+        top: 25%;
+        font-size: 12px;
+      }
+
+      .pulse-button {
+        left: 78%;
+        top: 32%;
+      }
+
+      @keyframes flyPlane {
+        0% {
+          left: 18%;
+          top: 70%;
+          transform: rotate(-18deg);
+        }
+
+        100% {
+          left: 78%;
+          top: 32%;
+          transform: rotate(-18deg);
+        }
+      }
+
+      .popup-content {
+        flex-direction: column;
+        max-width: 420px;
+      }
+
+      .popup-image-container {
+        width: 100%;
+        height: 300px;
+      }
+
+      .popup-text {
+        width: 100%;
+        padding: 30px;
+      }
+
+      .popup-text h2 {
+        font-size: 2rem;
+      }
+    }
   </style>
 </head>
 
@@ -351,96 +430,76 @@
 
   <div class="container">
 
+    <div class="title">
+      <h1>Judit & Guillermo</h1>
+      <p>Save the Date</p>
+    </div>
+
     <div class="map-wrapper">
 
-      <div class="title">
-        <h1>Judit & Guillermo</h1>
-        <p>Save the Date</p>
-      </div>
+      <!-- MAP IMAGE -->
+      <img
+        src="images/world.svg"
+        alt="World Map"
+        class="map-image"
+      />
 
-      <svg viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
+      <!-- ROUTE -->
+      <svg class="route-svg" viewBox="0 0 1000 500">
 
-        <!-- MAPA ESTILO ARTÍSTICO -->
-        <g opacity="0.18" fill="#c9d4ff">
-
-          <!-- América -->
-          <path d="M220 180
-                   C170 220,170 320,220 390
-                   C250 430,290 470,320 540
-                   L360 530
-                   C350 470,360 420,390 360
-                   C410 310,390 240,350 190
-                   C310 150,260 150,220 180Z"/>
-
-          <!-- Europa -->
-          <path d="M760 180
-                   C720 190,700 220,710 250
-                   C730 290,790 300,830 280
-                   C860 260,870 220,850 190
-                   C830 165,790 165,760 180Z"/>
-
-          <!-- África -->
-          <path d="M760 300
-                   C730 340,740 430,790 500
-                   C840 540,900 500,900 430
-                   C890 360,850 310,800 290
-                   C780 285,770 290,760 300Z"/>
-
-        </g>
-
-        <!-- Ruta -->
         <path
-          class="route"
-          d="M 330 420 Q 620 240 900 270"
+          class="route-path"
+          d="M230 335 Q520 130 740 170"
         />
-
-        <!-- Buenos Aires -->
-        <circle cx="330" cy="420" r="6" class="city"/>
-        <text x="280" y="450" class="city-label">
-          Buenos Aires
-        </text>
-
-        <!-- Barcelona -->
-        <circle cx="900" cy="270" r="6" class="city"/>
-        <text x="915" y="265" class="city-label">
-          Barcelona
-        </text>
 
       </svg>
 
-      <!-- Avión -->
-      <div class="plane">
-        ✈
-      </div>
+      <!-- CITIES -->
+      <div class="city ba"></div>
+      <div class="city-label ba-label">Buenos Aires</div>
 
-      <!-- Botón Pulse -->
-      <div class="pulse-marker" id="openPopup"></div>
+      <div class="city bcn"></div>
+      <div class="city-label bcn-label">Barcelona</div>
+
+      <!-- PLANE -->
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
+        class="plane"
+      />
+
+      <!-- BUTTON -->
+      <div class="pulse-button" id="openPopup"></div>
 
     </div>
+
   </div>
 
   <!-- POPUP -->
+
   <div class="popup" id="popup">
 
-    <div class="popup-card">
+    <div class="popup-content">
 
       <div class="close" id="closePopup">
         ×
       </div>
 
-      <img
-        src="images/image1.png"
-        alt="Judit y Guillermo"
-        class="popup-image"
-      >
+      <div class="popup-image-container">
 
-      <div class="popup-content">
+        <img
+          src="images/image1.png"
+          class="popup-image"
+        />
+
+      </div>
+
+      <div class="popup-text">
 
         <h2>¡Nos casamos!</h2>
 
         <p>
           Judit & Guillermo<br>
-          17 · 07 · 2027
+          17 / 07 / 2027
         </p>
 
         <div class="buttons">
@@ -462,51 +521,62 @@
           </a>
 
         </div>
+
       </div>
+
     </div>
+
   </div>
 
   <script>
 
-    // ESTRELLAS
+    // STARS
+
     const starsContainer = document.getElementById('stars');
 
-    for(let i = 0; i < 90; i++){
+    for (let i = 0; i < 80; i++) {
 
       const star = document.createElement('div');
 
       star.classList.add('star');
 
-      star.style.top = Math.random() * 100 + '%';
       star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
 
       star.style.animationDelay = Math.random() * 3 + 's';
-      star.style.animationDuration = (2 + Math.random() * 4) + 's';
 
       starsContainer.appendChild(star);
     }
 
     // POPUP
+
     const popup = document.getElementById('popup');
-    const openPopup = document.getElementById('openPopup');
-    const closePopup = document.getElementById('closePopup');
-    const closeButton = document.getElementById('closeButton');
 
-    openPopup.addEventListener('click', () => {
-      popup.classList.add('active');
-    });
+    document
+      .getElementById('openPopup')
+      .addEventListener('click', () => {
+        popup.classList.add('active');
+      });
 
-    closePopup.addEventListener('click', () => {
-      popup.classList.remove('active');
-    });
+    document
+      .getElementById('closePopup')
+      .addEventListener('click', () => {
+        popup.classList.remove('active');
+      });
 
-    closeButton.addEventListener('click', (e) => {
-      e.preventDefault();
-      popup.classList.remove('active');
-    });
+    document
+      .getElementById('closeButton')
+      .addEventListener('click', (e) => {
+
+        e.preventDefault();
+
+        popup.classList.remove('active');
+      });
 
     popup.addEventListener('click', (e) => {
-      if(e.target === popup){
+
+      if (e.target === popup) {
+
         popup.classList.remove('active');
       }
     });
@@ -514,4 +584,5 @@
   </script>
 
 </body>
+
 </html>
