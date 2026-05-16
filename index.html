@@ -2,424 +2,473 @@
 <html lang="es">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Judit & Guillermo — Save the Date</title>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Judit & Guillermo</title>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
     }
 
-    body {
-      width: 100%;
-      min-height: 100vh;
-      overflow-x: hidden;
-      background: #08111f;
-      font-family: Arial, sans-serif;
-      color: white;
+    body{
+
+      background:#08111f;
+      color:white;
+
+      font-family:Arial, sans-serif;
+
+      overflow-x:hidden;
+      min-height:100vh;
     }
 
-    .background {
-      position: fixed;
-      inset: 0;
+    /* BACKGROUND */
+
+    .background{
+
+      position:fixed;
+      inset:0;
+
       background:
-        radial-gradient(circle at top, rgba(212, 175, 55, 0.08), transparent 40%),
-        linear-gradient(180deg, #08111f 0%, #0b1730 100%);
-      z-index: 0;
+      radial-gradient(circle at top,
+      rgba(212,175,55,.08),
+      transparent 35%),
+
+      linear-gradient(
+      180deg,
+      #08111f 0%,
+      #0d1730 100%
+      );
+
+      z-index:0;
     }
 
     /* STARS */
 
-    .stars {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
+    .stars{
+
+      position:fixed;
+      inset:0;
+
+      z-index:1;
+      overflow:hidden;
     }
 
-    .star {
-      position: absolute;
-      width: 2px;
-      height: 2px;
-      background: white;
-      border-radius: 50%;
-      animation: blink 3s infinite ease-in-out;
-      opacity: 0.4;
+    .star{
+
+      position:absolute;
+
+      width:2px;
+      height:2px;
+
+      background:white;
+
+      border-radius:50%;
+
+      opacity:.3;
+
+      animation:blink 3s infinite;
     }
 
-    @keyframes blink {
+    @keyframes blink{
 
-      0%,
-      100% {
-        opacity: 0.2;
+      0%,100%{
+        opacity:.2;
       }
 
-      50% {
-        opacity: 1;
+      50%{
+        opacity:1;
       }
     }
 
     /* MAIN */
 
-    .container {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      min-height: 100vh;
+    .container{
 
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      position:relative;
+      z-index:2;
 
-      padding: 30px 20px;
+      width:100%;
+      min-height:100vh;
+
+      display:flex;
+      flex-direction:column;
+
+      justify-content:center;
+      align-items:center;
+
+      padding:30px 20px;
     }
 
-    .title {
-      text-align: center;
-      margin-bottom: 40px;
+    .title{
+
+      text-align:center;
+      margin-bottom:35px;
     }
 
-    .title h1 {
-      font-size: clamp(2.5rem, 5vw, 4rem);
-      font-weight: normal;
-      margin-bottom: 10px;
+    .title h1{
+
+      font-size:3rem;
+      font-weight:normal;
+
+      margin-bottom:10px;
     }
 
-    .title p {
-      letter-spacing: 4px;
-      font-size: 0.8rem;
-      opacity: 0.8;
-      text-transform: uppercase;
+    .title p{
+
+      font-size:.75rem;
+
+      letter-spacing:4px;
+      text-transform:uppercase;
+
+      opacity:.8;
     }
 
     /* MAP */
 
-    .map-wrapper {
-      position: relative;
-      width: 100%;
-      max-width: 1200px;
-      aspect-ratio: 16 / 9;
+    .map-wrapper{
+
+      position:relative;
+
+      width:100%;
+      max-width:900px;
     }
 
-    .map-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      opacity: 0.9;
+    .map-crop{
+    
+      width:100%;
+      overflow:hidden;
+    
+      position:relative;
+    }
+    
+    .map{
+    
+      width:170%;
+      max-width:none;
+    
+      transform:translateX(-22%);
+    
+      opacity:.18;
+    
+      display:block;
     }
 
     /* ROUTE */
 
-    .route-svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
+    .route{
+
+      position:absolute;
+      inset:0;
+
+      width:100%;
+      height:100%;
     }
 
-    .route-path {
-      fill: none;
-      stroke: #d4af37;
-      stroke-width: 3;
-      stroke-dasharray: 10 10;
+    .route path{
+
+      fill:none;
+
+      stroke:#d4af37;
+
+      stroke-width:3;
+
+      stroke-dasharray:10 10;
     }
 
     /* CITIES */
 
-    .city {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      background: #d4af37;
-      border-radius: 50%;
+    .city{
+
+      position:absolute;
+
+      width:12px;
+      height:12px;
+
+      background:#d4af37;
+
+      border-radius:50%;
     }
 
-    .city-label {
-      position: absolute;
-      font-size: 14px;
-      white-space: nowrap;
-      opacity: 0.8;
+    .city-label{
+
+      position:absolute;
+
+      font-size:.8rem;
+
+      white-space:nowrap;
+
+      opacity:.85;
     }
 
-    /* Buenos Aires */
+    /* BUENOS AIRES */
 
-    .ba {
-      left: 23%;
-      top: 67%;
+    .ba{
+      left:18%;
+      top:68%;
     }
 
-    .ba-label {
-      left: 20%;
-      top: 71%;
+    .ba-label{
+      left:10%;
+      top:74%;
     }
 
-    /* Barcelona */
+    /* BARCELONA */
 
-    .bcn {
-      left: 74%;
-      top: 34%;
+    .bcn{
+      left:77%;
+      top:33%;
     }
 
-    .bcn-label {
-      left: 76%;
-      top: 33%;
+    .bcn-label{
+      left:72%;
+      top:25%;
     }
 
     /* PLANE */
 
-    .plane {
-      position: absolute;
-      width: 30px;
-      height: 30px;
+    .plane{
 
-      left: 23%;
-      top: 67%;
+      position:absolute;
 
-      animation: flyPlane 10s linear infinite;
+      width:34px;
 
-      transform-origin: center;
+      left:18%;
+      top:68%;
+
+      animation:fly 9s linear infinite;
     }
 
-    @keyframes flyPlane {
-      0% {
-        left: 23%;
-        top: 67%;
-        transform: rotate(-18deg);
+    @keyframes fly{
+
+      0%{
+
+        left:18%;
+        top:68%;
+
+        transform:
+        rotate(-18deg);
       }
 
-      50% {
-        transform: rotate(-8deg);
+      100%{
+
+        left:77%;
+        top:33%;
+
+        transform:
+        rotate(-18deg);
+      }
+    }
+
+    /* BUTTON */
+
+    .pulse{
+
+      position:absolute;
+
+      left:77%;
+      top:33%;
+
+      width:26px;
+      height:26px;
+
+      border-radius:50%;
+
+      background:#d4af37;
+
+      transform:translate(-50%,-50%);
+
+      cursor:pointer;
+    }
+
+    .pulse::before,
+    .pulse::after{
+
+      content:"";
+
+      position:absolute;
+      inset:0;
+
+      border-radius:50%;
+
+      border:2px solid rgba(212,175,55,.7);
+
+      animation:pulse 2s infinite;
+    }
+
+    .pulse::after{
+      animation-delay:1s;
+    }
+
+    @keyframes pulse{
+
+      0%{
+        transform:scale(1);
+        opacity:1;
       }
 
-      100% {
-        left: 74%;
-        top: 34%;
-        transform: rotate(-18deg);
-      }
-    }
-
-    /* PULSE BUTTON */
-
-    .pulse-button {
-      position: absolute;
-
-      left: 74%;
-      top: 34%;
-
-      width: 26px;
-      height: 26px;
-
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-
-      background: #d4af37;
-
-      cursor: pointer;
-    }
-
-    .pulse-button::before,
-    .pulse-button::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      border: 2px solid rgba(212, 175, 55, 0.7);
-      animation: pulse 2s infinite;
-    }
-
-    .pulse-button::after {
-      animation-delay: 1s;
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 1;
-      }
-
-      100% {
-        transform: scale(3);
-        opacity: 0;
+      100%{
+        transform:scale(3);
+        opacity:0;
       }
     }
 
     /* POPUP */
 
-    .popup {
-      position: fixed;
-      inset: 0;
+    .popup{
 
-      background: rgba(0, 0, 0, 0.7);
+      position:fixed;
+      inset:0;
 
-      display: none;
-      justify-content: center;
-      align-items: center;
+      background:rgba(0,0,0,.72);
 
-      z-index: 999;
+      display:none;
 
-      padding: 20px;
+      justify-content:center;
+      align-items:center;
+
+      z-index:999;
+
+      padding:20px;
     }
 
-    .popup.active {
-      display: flex;
+    .popup.active{
+      display:flex;
     }
 
-    .popup-content {
-      width: 100%;
-      max-width: 850px;
+    .popup-content{
 
-      background: #101b31;
+      width:100%;
+      max-width:850px;
 
-      display: flex;
-      flex-direction: row;
+      background:#101a30;
 
-      overflow: hidden;
+      display:flex;
+
+      overflow:hidden;
     }
 
-    .popup-image-container {
-      width: 50%;
-      background: black;
+    .popup-image{
+
+      width:50%;
+      object-fit:cover;
     }
 
-    .popup-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      background: black;
+    .popup-right{
+
+      width:50%;
+
+      padding:40px;
+
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
     }
 
-    .popup-text {
-      width: 50%;
+    .popup-right h2{
 
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      font-size:2.2rem;
 
-      padding: 40px;
+      margin-bottom:20px;
+
+      font-weight:normal;
     }
 
-    .popup-text h2 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      font-weight: normal;
+    .popup-right p{
+
+      line-height:1.6;
+
+      margin-bottom:30px;
     }
 
-    .popup-text p {
-      margin-bottom: 30px;
-      line-height: 1.6;
+    .buttons{
+
+      display:flex;
+      flex-direction:column;
+
+      gap:15px;
     }
 
-    .buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
+    .btn{
+
+      padding:15px;
+
+      text-align:center;
+
+      text-decoration:none;
+
+      transition:.2s;
     }
 
-    .btn {
-      padding: 15px;
-      text-decoration: none;
-      text-align: center;
-      transition: 0.2s;
+    .btn-primary{
+
+      background:#d4af37;
+      color:#08111f;
     }
 
-    .btn-primary {
-      background: #d4af37;
-      color: #08111f;
+    .btn-secondary{
+
+      border:1px solid white;
+      color:white;
     }
 
-    .btn-secondary {
-      border: 1px solid white;
-      color: white;
+    .btn:hover{
+      opacity:.85;
     }
 
-    .btn:hover {
-      opacity: 0.85;
-    }
+    .close{
 
-    .close {
-      position: absolute;
-      top: 20px;
-      right: 25px;
+      position:absolute;
 
-      font-size: 30px;
-      cursor: pointer;
+      top:20px;
+      right:25px;
+
+      font-size:30px;
+
+      cursor:pointer;
     }
 
     /* MOBILE */
 
-    @media (max-width: 768px) {
+    @media(max-width:768px){
 
-      .map-wrapper {
-        aspect-ratio: 1 / 1;
+      .title h1{
+        font-size:2.5rem;
       }
 
-      .ba {
-        left: 18%;
-        top: 70%;
+      .popup-content{
+
+        flex-direction:column;
+
+        max-width:420px;
       }
 
-      .ba-label {
-        left: 10%;
-        top: 76%;
-        font-size: 12px;
+      .popup-image{
+
+        width:100%;
+        height:320px;
+
+        object-fit:cover;
       }
 
-      .bcn {
-        left: 78%;
-        top: 32%;
-      }
+      .popup-right{
 
-      .bcn-label {
-        left: 60%;
-        top: 25%;
-        font-size: 12px;
-      }
-
-      .pulse-button {
-        left: 78%;
-        top: 32%;
-      }
-
-      @keyframes flyPlane {
-        0% {
-          left: 18%;
-          top: 70%;
-          transform: rotate(-18deg);
-        }
-
-        100% {
-          left: 78%;
-          top: 32%;
-          transform: rotate(-18deg);
-        }
-      }
-
-      .popup-content {
-        flex-direction: column;
-        max-width: 420px;
-      }
-
-      .popup-image-container {
-        width: 100%;
-        height: 300px;
-      }
-
-      .popup-text {
-        width: 100%;
-        padding: 30px;
-      }
-
-      .popup-text h2 {
-        font-size: 2rem;
+        width:100%;
+        padding:30px;
       }
     }
+
   </style>
+
 </head>
 
 <body>
@@ -431,44 +480,60 @@
   <div class="container">
 
     <div class="title">
+
       <h1>Judit & Guillermo</h1>
+
       <p>Save the Date</p>
+
     </div>
 
     <div class="map-wrapper">
 
-      <!-- MAP IMAGE -->
+      <!-- MAP -->
+
       <img
         src="images/world.svg"
-        alt="World Map"
-        class="map-image"
+        class="map"
       />
 
       <!-- ROUTE -->
-      <svg class="route-svg" viewBox="0 0 1000 500">
+
+      <svg
+        class="route"
+        viewBox="0 0 1000 500"
+      >
 
         <path
-          class="route-path"
-          d="M230 335 Q520 130 740 170"
+          d="M180 350 Q500 90 760 170"
         />
 
       </svg>
 
       <!-- CITIES -->
+
       <div class="city ba"></div>
-      <div class="city-label ba-label">Buenos Aires</div>
+      <div class="city-label ba-label">
+        Buenos Aires
+      </div>
 
       <div class="city bcn"></div>
-      <div class="city-label bcn-label">Barcelona</div>
+      <div class="city-label bcn-label">
+        Barcelona
+      </div>
 
       <!-- PLANE -->
+
       <img
         src="https://cdn-icons-png.flaticon.com/512/684/684908.png"
         class="plane"
       />
 
       <!-- BUTTON -->
-      <div class="pulse-button" id="openPopup"></div>
+
+      <div
+        class="pulse"
+        id="openPopup"
+      ></div>
 
     </div>
 
@@ -476,30 +541,36 @@
 
   <!-- POPUP -->
 
-  <div class="popup" id="popup">
+  <div
+    class="popup"
+    id="popup"
+  >
 
     <div class="popup-content">
 
-      <div class="close" id="closePopup">
+      <div
+        class="close"
+        id="closePopup"
+      >
         ×
       </div>
 
-      <div class="popup-image-container">
+      <img
+        src="images/image1.png"
+        class="popup-image"
+      />
 
-        <img
-          src="images/image1.png"
-          class="popup-image"
-        />
+      <div class="popup-right">
 
-      </div>
-
-      <div class="popup-text">
-
-        <h2>¡Nos casamos!</h2>
+        <h2>
+          ¡Nos casamos!
+        </h2>
 
         <p>
+
           Judit & Guillermo<br>
           17 / 07 / 2027
+
         </p>
 
         <div class="buttons">
@@ -532,54 +603,63 @@
 
     // STARS
 
-    const starsContainer = document.getElementById('stars');
+    const stars =
+    document.getElementById('stars');
 
-    for (let i = 0; i < 80; i++) {
+    for(let i=0;i<70;i++){
 
-      const star = document.createElement('div');
+      const star =
+      document.createElement('div');
 
       star.classList.add('star');
 
-      star.style.left = Math.random() * 100 + '%';
-      star.style.top = Math.random() * 100 + '%';
+      star.style.left =
+      Math.random()*100+'%';
 
-      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.top =
+      Math.random()*100+'%';
 
-      starsContainer.appendChild(star);
+      star.style.animationDelay =
+      Math.random()*3+'s';
+
+      stars.appendChild(star);
     }
 
     // POPUP
 
-    const popup = document.getElementById('popup');
+    const popup =
+    document.getElementById('popup');
 
     document
-      .getElementById('openPopup')
-      .addEventListener('click', () => {
-        popup.classList.add('active');
-      });
+    .getElementById('openPopup')
+    .onclick=()=>{
+
+      popup.classList.add('active');
+    };
 
     document
-      .getElementById('closePopup')
-      .addEventListener('click', () => {
-        popup.classList.remove('active');
-      });
+    .getElementById('closePopup')
+    .onclick=()=>{
+
+      popup.classList.remove('active');
+    };
 
     document
-      .getElementById('closeButton')
-      .addEventListener('click', (e) => {
+    .getElementById('closeButton')
+    .onclick=(e)=>{
 
-        e.preventDefault();
+      e.preventDefault();
 
-        popup.classList.remove('active');
-      });
+      popup.classList.remove('active');
+    };
 
-    popup.addEventListener('click', (e) => {
+    popup.onclick=(e)=>{
 
-      if (e.target === popup) {
+      if(e.target===popup){
 
         popup.classList.remove('active');
       }
-    });
+    };
 
   </script>
 
