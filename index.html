@@ -1,95 +1,517 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Judit & Guillermo · Save the Date</title>
-  <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Judit & Guillermo — Save the Date</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      overflow:hidden;
+      font-family:'Inter', sans-serif;
+      background:#08111f;
+      color:white;
+      height:100vh;
+      width:100vw;
+      position:relative;
+    }
+
+    .background{
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(circle at top, rgba(212,175,55,0.12), transparent 35%),
+        radial-gradient(circle at bottom, rgba(230,183,169,0.12), transparent 40%),
+        linear-gradient(180deg,#07101d 0%, #0d1830 45%, #08111f 100%);
+      animation: gradientMove 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes gradientMove{
+      from{
+        transform:scale(1);
+      }
+      to{
+        transform:scale(1.05);
+      }
+    }
+
+    .stars{
+      position:absolute;
+      inset:0;
+      overflow:hidden;
+    }
+
+    .star{
+      position:absolute;
+      width:2px;
+      height:2px;
+      background:white;
+      border-radius:50%;
+      opacity:.3;
+      animation: twinkle 3s infinite ease-in-out;
+    }
+
+    @keyframes twinkle{
+      0%,100%{
+        opacity:.2;
+        transform:scale(1);
+      }
+      50%{
+        opacity:1;
+        transform:scale(1.8);
+      }
+    }
+
+    .container{
+      position:relative;
+      z-index:2;
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .map-wrapper{
+      position:relative;
+      width:min(1200px, 95vw);
+      aspect-ratio:16/9;
+    }
+
+    .title{
+      position:absolute;
+      top:8%;
+      left:50%;
+      transform:translateX(-50%);
+      text-align:center;
+      z-index:10;
+    }
+
+    .title h1{
+      font-family:'Cormorant Garamond', serif;
+      font-size:clamp(2.8rem, 5vw, 5rem);
+      font-weight:600;
+      letter-spacing:2px;
+      color:#f8f4ee;
+    }
+
+    .title p{
+      margin-top:8px;
+      color:rgba(255,255,255,.75);
+      letter-spacing:4px;
+      text-transform:uppercase;
+      font-size:.8rem;
+    }
+
+    svg{
+      width:100%;
+      height:100%;
+      opacity:.92;
+    }
+
+    .route{
+      stroke:#d4af37;
+      stroke-width:2.5;
+      fill:none;
+      stroke-dasharray:8 10;
+      opacity:.8;
+    }
+
+    .city{
+      fill:#d4af37;
+      filter:drop-shadow(0 0 10px rgba(212,175,55,.8));
+    }
+
+    .city-label{
+      fill:white;
+      font-size:14px;
+      letter-spacing:1px;
+      opacity:.8;
+    }
+
+    .plane{
+      offset-path:path("M 330 420 Q 620 240 900 270");
+      offset-rotate:auto;
+      animation: fly 9s ease-in-out infinite;
+    }
+
+    @keyframes fly{
+      0%{
+        offset-distance:0%;
+      }
+      100%{
+        offset-distance:100%;
+      }
+    }
+
+    .pulse-marker{
+      position:absolute;
+      top:39%;
+      right:19%;
+      transform:translate(-50%,-50%);
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      background:#d4af37;
+      cursor:pointer;
+      box-shadow:0 0 25px rgba(212,175,55,.8);
+      z-index:20;
+    }
+
+    .pulse-marker::before,
+    .pulse-marker::after{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      border:2px solid rgba(212,175,55,.7);
+      animation:pulse 2.5s infinite;
+    }
+
+    .pulse-marker::after{
+      animation-delay:1s;
+    }
+
+    @keyframes pulse{
+      0%{
+        transform:scale(1);
+        opacity:1;
+      }
+      100%{
+        transform:scale(3);
+        opacity:0;
+      }
+    }
+
+    .popup{
+      position:fixed;
+      inset:0;
+      background:rgba(3,7,18,.7);
+      backdrop-filter:blur(12px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:100;
+      padding:20px;
+    }
+
+    .popup.active{
+      display:flex;
+      animation:fadeIn .4s ease;
+    }
+
+    @keyframes fadeIn{
+      from{
+        opacity:0;
+      }
+      to{
+        opacity:1;
+      }
+    }
+
+    .popup-card{
+      width:min(420px, 100%);
+      background:rgba(10,17,30,.92);
+      border:1px solid rgba(212,175,55,.25);
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:
+        0 0 40px rgba(0,0,0,.45),
+        0 0 80px rgba(212,175,55,.08);
+      animation:popupEnter .5s ease;
+    }
+
+    @keyframes popupEnter{
+      from{
+        transform:translateY(20px) scale(.95);
+        opacity:0;
+      }
+      to{
+        transform:translateY(0) scale(1);
+        opacity:1;
+      }
+    }
+
+    .popup-image{
+      width:100%;
+      height:260px;
+      object-fit:cover;
+    }
+
+    .popup-content{
+      padding:34px 28px;
+      text-align:center;
+    }
+
+    .popup-content h2{
+      font-family:'Cormorant Garamond', serif;
+      font-size:2.4rem;
+      font-weight:600;
+      margin-bottom:12px;
+      color:#f8f4ee;
+    }
+
+    .popup-content p{
+      color:rgba(255,255,255,.8);
+      margin-bottom:28px;
+      line-height:1.6;
+    }
+
+    .buttons{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .btn{
+      text-decoration:none;
+      padding:15px 20px;
+      border-radius:999px;
+      transition:.3s ease;
+      font-weight:500;
+      letter-spacing:.5px;
+    }
+
+    .btn-primary{
+      background:#d4af37;
+      color:#08111f;
+    }
+
+    .btn-primary:hover{
+      transform:translateY(-2px);
+      box-shadow:0 10px 25px rgba(212,175,55,.25);
+    }
+
+    .btn-secondary{
+      border:1px solid rgba(255,255,255,.18);
+      color:white;
+      background:rgba(255,255,255,.04);
+    }
+
+    .btn-secondary:hover{
+      background:rgba(255,255,255,.08);
+    }
+
+    .close{
+      position:absolute;
+      top:18px;
+      right:22px;
+      color:white;
+      font-size:28px;
+      cursor:pointer;
+      opacity:.7;
+      transition:.2s;
+    }
+
+    .close:hover{
+      opacity:1;
+    }
+
+    @media (max-width:768px){
+
+      .pulse-marker{
+        top:43%;
+        right:14%;
+      }
+
+      .title{
+        top:12%;
+      }
+
+      .title h1{
+        font-size:3rem;
+      }
+
+      .title p{
+        font-size:.7rem;
+      }
+    }
+
+  </style>
 </head>
+
 <body>
 
-  <!-- ══ MAPA ══ -->
-  <div id="map-container">
-    <div id="map-bg"></div>
-    <div class="map-vignette"></div>
+  <div class="background"></div>
 
-    <!-- SVG overlay: ruta punteada -->
-    <svg class="svg-overlay" id="route-svg" viewBox="0 0 2000 857" preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <path id="flight-path" d="" fill="none" stroke="#c9973a"
-            stroke-width="2" stroke-dasharray="8 5" opacity="0.9"
-            filter="url(#glow)"/>
-    </svg>
+  <div class="stars" id="stars"></div>
 
-    <!-- Avión SVG -->
-    <div id="plane-wrap" aria-hidden="true">
-      <svg id="plane-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-        <!-- cuerpo -->
-        <path d="M4 20 L34 8 L28 20 L34 32 Z" fill="#c9973a"/>
-        <!-- ala derecha -->
-        <path d="M16 20 L26 14 L26 20 Z" fill="#f0e0c0" opacity="0.8"/>
-        <!-- ala izquierda -->
-        <path d="M16 20 L26 26 L26 20 Z" fill="#f0e0c0" opacity="0.8"/>
+  <div class="container">
+
+    <div class="map-wrapper">
+
+      <div class="title">
+        <h1>Judit & Guillermo</h1>
+        <p>Save the Date</p>
+      </div>
+
+      <svg viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- MAPA ESTILO ARTÍSTICO -->
+        <g opacity="0.18" fill="#c9d4ff">
+
+          <!-- América -->
+          <path d="M220 180
+                   C170 220,170 320,220 390
+                   C250 430,290 470,320 540
+                   L360 530
+                   C350 470,360 420,390 360
+                   C410 310,390 240,350 190
+                   C310 150,260 150,220 180Z"/>
+
+          <!-- Europa -->
+          <path d="M760 180
+                   C720 190,700 220,710 250
+                   C730 290,790 300,830 280
+                   C860 260,870 220,850 190
+                   C830 165,790 165,760 180Z"/>
+
+          <!-- África -->
+          <path d="M760 300
+                   C730 340,740 430,790 500
+                   C840 540,900 500,900 430
+                   C890 360,850 310,800 290
+                   C780 285,770 290,760 300Z"/>
+
+        </g>
+
+        <!-- Ruta -->
+        <path
+          class="route"
+          d="M 330 420 Q 620 240 900 270"
+        />
+
+        <!-- Buenos Aires -->
+        <circle cx="330" cy="420" r="6" class="city"/>
+        <text x="280" y="450" class="city-label">
+          Buenos Aires
+        </text>
+
+        <!-- Barcelona -->
+        <circle cx="900" cy="270" r="6" class="city"/>
+        <text x="915" y="265" class="city-label">
+          Barcelona
+        </text>
+
       </svg>
-    </div>
 
-    <!-- Buenos Aires -->
-    <div class="city-dot" id="dot-bue"></div>
-    <div class="city-label" id="label-bue">Buenos Aires</div>
-
-    <!-- Barcelona (pulsante) -->
-    <div class="pulse-ring" id="ring1"></div>
-    <div class="pulse-ring ring2" id="ring2"></div>
-    <div class="city-dot bcn-dot" id="dot-bcn"
-         onclick="openPopup()" role="button" tabindex="0"
-         aria-label="Ver invitación de boda"></div>
-    <div class="city-label" id="label-bcn">Barcelona</div>
-    <div class="tap-hint" id="tap-hint">✦ toca aquí ✦</div>
-
-    <!-- Textos: panel en la parte inferior central, fuera de la zona del mapa -->
-    <div class="text-panel">
-      <p class="text-std">Save the Date</p>
-      <h1 class="text-names">Judit <span class="amp">&amp;</span> Guillermo</h1>
-      <p class="text-date">17 · 07 · 2027</p>
-    </div>
-
-  </div>
-
-  <!-- Canvas pétalos + partículas -->
-  <canvas id="petal-canvas" aria-hidden="true"></canvas>
-
-  <!-- ══ POPUP ══ -->
-  <div class="popup-overlay" id="popup-overlay" onclick="closeOutside(event)">
-    <div class="popup" id="popup" role="dialog" aria-modal="true">
-      <button class="popup-close" onclick="closePopup()" aria-label="Cerrar">×</button>
-      <div class="deco-l">❧</div>
-      <div class="deco-r">❧</div>
-
-      <div class="img-wrap">
-        <img src="images/image1.png" alt="Judit y Guillermo" class="popup-img"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="img-placeholder"><span>Judit &amp; Guillermo</span></div>
+      <!-- Avión -->
+      <div class="plane">
+        ✈
       </div>
 
-      <p class="popup-eyebrow">nos complace invitarte a nuestra boda</p>
-      <h2 class="popup-title">Judit <span class="amp">&amp;</span> Guillermo</h2>
-      <p class="popup-date">17 de julio de 2027</p>
-      <div class="divider"></div>
+      <!-- Botón Pulse -->
+      <div class="pulse-marker" id="openPopup"></div>
 
-      <div class="btn-row">
-        <a href="https://forms.gle/mNn5QGhmMoPXfbsSA" target="_blank"
-           rel="noopener" class="btn-primary">Confirmar asistencia</a>
-        <button class="btn-secondary" onclick="closePopup()">Cerrar</button>
-      </div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <!-- POPUP -->
+  <div class="popup" id="popup">
+
+    <div class="popup-card">
+
+      <div class="close" id="closePopup">
+        ×
+      </div>
+
+      <img
+        src="images/image1.png"
+        alt="Judit y Guillermo"
+        class="popup-image"
+      >
+
+      <div class="popup-content">
+
+        <h2>¡Nos casamos!</h2>
+
+        <p>
+          Judit & Guillermo<br>
+          17 · 07 · 2027
+        </p>
+
+        <div class="buttons">
+
+          <a
+            href="https://forms.gle/mNn5QGhmMoPXfbsSA"
+            target="_blank"
+            class="btn btn-primary"
+          >
+            Confirmar asistencia
+          </a>
+
+          <a
+            href="#"
+            class="btn btn-secondary"
+            id="closeButton"
+          >
+            No podremos asistir
+          </a>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+    // ESTRELLAS
+    const starsContainer = document.getElementById('stars');
+
+    for(let i = 0; i < 90; i++){
+
+      const star = document.createElement('div');
+
+      star.classList.add('star');
+
+      star.style.top = Math.random() * 100 + '%';
+      star.style.left = Math.random() * 100 + '%';
+
+      star.style.animationDelay = Math.random() * 3 + 's';
+      star.style.animationDuration = (2 + Math.random() * 4) + 's';
+
+      starsContainer.appendChild(star);
+    }
+
+    // POPUP
+    const popup = document.getElementById('popup');
+    const openPopup = document.getElementById('openPopup');
+    const closePopup = document.getElementById('closePopup');
+    const closeButton = document.getElementById('closeButton');
+
+    openPopup.addEventListener('click', () => {
+      popup.classList.add('active');
+    });
+
+    closePopup.addEventListener('click', () => {
+      popup.classList.remove('active');
+    });
+
+    closeButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      popup.classList.remove('active');
+    });
+
+    popup.addEventListener('click', (e) => {
+      if(e.target === popup){
+        popup.classList.remove('active');
+      }
+    });
+
+  </script>
+
 </body>
 </html>
