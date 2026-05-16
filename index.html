@@ -9,83 +9,86 @@
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════
-       MAPA DE FONDO
-  ═══════════════════════════════════════ -->
+  <!-- ══ MAPA ══ -->
   <div id="map-container">
     <div id="map-bg"></div>
-    <div class="map-overlay"></div>
+    <div class="map-vignette"></div>
 
-    <!-- SVG overlay: ruta punteada + avión -->
-    <svg class="svg-overlay" id="route-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet">
+    <!-- SVG overlay: ruta punteada -->
+    <svg class="svg-overlay" id="route-svg" viewBox="0 0 2000 857" preserveAspectRatio="xMidYMid meet">
       <defs>
-        <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+        <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
           <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
       </defs>
-      <path id="flight-path" d="" fill="none" stroke="#b8860b"
-        stroke-width="1.5" stroke-dasharray="6 5" opacity="0.75"
-        filter="url(#soft-glow)"/>
+      <path id="flight-path" d="" fill="none" stroke="#c9973a"
+            stroke-width="2" stroke-dasharray="8 5" opacity="0.9"
+            filter="url(#glow)"/>
     </svg>
 
-    <!-- Textos principales -->
-    <div class="text-overlay">
-      <p class="save-the-date-text">Save the Date</p>
-      <h1 class="names">Judit <span class="amp">&</span> Guillermo</h1>
-      <p class="date-text">17 · 07 · 2027</p>
+    <!-- Avión SVG -->
+    <div id="plane-wrap" aria-hidden="true">
+      <svg id="plane-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <!-- cuerpo -->
+        <path d="M4 20 L34 8 L28 20 L34 32 Z" fill="#c9973a"/>
+        <!-- ala derecha -->
+        <path d="M16 20 L26 14 L26 20 Z" fill="#f0e0c0" opacity="0.8"/>
+        <!-- ala izquierda -->
+        <path d="M16 20 L26 26 L26 20 Z" fill="#f0e0c0" opacity="0.8"/>
+      </svg>
     </div>
 
-    <!-- Punto Buenos Aires -->
+    <!-- Buenos Aires -->
     <div class="city-dot" id="dot-bue"></div>
     <div class="city-label" id="label-bue">Buenos Aires</div>
 
-    <!-- Punto Barcelona (pulsante + clickable) -->
-    <div class="bcn-ring" id="bcn-ring1"></div>
-    <div class="bcn-ring bcn-ring2" id="bcn-ring2"></div>
-    <div class="bcn-dot" id="dot-bcn" onclick="openPopup()" role="button" aria-label="Abrir invitación"></div>
+    <!-- Barcelona (pulsante) -->
+    <div class="pulse-ring" id="ring1"></div>
+    <div class="pulse-ring ring2" id="ring2"></div>
+    <div class="city-dot bcn-dot" id="dot-bcn"
+         onclick="openPopup()" role="button" tabindex="0"
+         aria-label="Ver invitación de boda"></div>
     <div class="city-label" id="label-bcn">Barcelona</div>
-    <div class="tap-hint" id="tap-hint">✦ Toca aquí ✦</div>
+    <div class="tap-hint" id="tap-hint">✦ toca aquí ✦</div>
 
-    <!-- Avión -->
-    <div id="plane" aria-hidden="true">✈</div>
+    <!-- Textos: panel en la parte inferior central, fuera de la zona del mapa -->
+    <div class="text-panel">
+      <p class="text-std">Save the Date</p>
+      <h1 class="text-names">Judit <span class="amp">&amp;</span> Guillermo</h1>
+      <p class="text-date">17 · 07 · 2027</p>
+    </div>
+
   </div>
 
-  <!-- ═══════════════════════════════════════
-       POPUP
-  ═══════════════════════════════════════ -->
-  <div class="popup-overlay" id="popup-overlay" onclick="closePopupOutside(event)">
-    <div class="popup" id="popup" role="dialog" aria-modal="true" aria-label="Invitación de boda">
+  <!-- Canvas pétalos + partículas -->
+  <canvas id="petal-canvas" aria-hidden="true"></canvas>
+
+  <!-- ══ POPUP ══ -->
+  <div class="popup-overlay" id="popup-overlay" onclick="closeOutside(event)">
+    <div class="popup" id="popup" role="dialog" aria-modal="true">
       <button class="popup-close" onclick="closePopup()" aria-label="Cerrar">×</button>
+      <div class="deco-l">❧</div>
+      <div class="deco-r">❧</div>
 
-      <div class="rose-deco left">❧</div>
-      <div class="rose-deco right">❧</div>
-
-      <!-- Imagen personalizada: cambia la ruta por images/image1.png -->
-      <div class="popup-image-wrap">
-        <img src="images/image1.png" alt="Judit y Guillermo" class="popup-image"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-        <div class="popup-image-placeholder">
-          <span>Judit &amp; Guillermo</span>
-        </div>
+      <div class="img-wrap">
+        <img src="images/image1.png" alt="Judit y Guillermo" class="popup-img"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="img-placeholder"><span>Judit &amp; Guillermo</span></div>
       </div>
 
       <p class="popup-eyebrow">nos complace invitarte a nuestra boda</p>
-      <h2 class="popup-title">Judit <span class="amp">& </span>Guillermo</h2>
+      <h2 class="popup-title">Judit <span class="amp">&amp;</span> Guillermo</h2>
       <p class="popup-date">17 de julio de 2027</p>
-      <div class="popup-divider"></div>
+      <div class="divider"></div>
 
-      <div class="popup-buttons">
-        <a href="https://forms.gle/mNn5QGhmMoPXfbsSA" target="_blank" rel="noopener" class="btn-primary">
-          Confirmar asistencia
-        </a>
+      <div class="btn-row">
+        <a href="https://forms.gle/mNn5QGhmMoPXfbsSA" target="_blank"
+           rel="noopener" class="btn-primary">Confirmar asistencia</a>
         <button class="btn-secondary" onclick="closePopup()">Cerrar</button>
       </div>
     </div>
   </div>
-
-  <!-- Pétalos container -->
-  <div id="petals-container" aria-hidden="true"></div>
 
   <script src="script.js"></script>
 </body>
